@@ -1,36 +1,28 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 const vscode = require('vscode');
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
-
-// todo rename
-
-// third parameter is weird
-function parenthesesPositions(regEx, text, operatorLength = 1) {
+function getMissingSpacePositions(regEx, text) {
 	let positions = [];
 	let subString = text;
 
 	while (subString.search(regEx) != -1) {
 		const positionIncrement = positions.length == 0 ? 0 : positions[positions.length - 1];
-		positions.push(subString.search(regEx) + operatorLength + positionIncrement);
+		positions.push(subString.search(regEx) + 1 + positionIncrement);
 		subString = text.substring(positions[positions.length - 1]);
 	}
 
 	return positions;
 }
 
-function findPairs(regEx, text, operatorLength = 1, closingRegEx = regEx) {
+function findPairs(openingRegEx, text, operatorLength = 1, closingRegEx = openingRegEx) {
 	let positions = [];
 	let subString = text;
 
 	let startingQuote = true;
-	while (subString.search(regEx) != -1 || subString.search(closingRegEx) != -1) {
+	while (subString.search(openingRegEx) != -1 || subString.search(closingRegEx) != -1) {
 		const positionIncrement = positions.length == 0 ? 0 : positions[positions.length - 1][positions[positions.length - 1].length - 1];
 
 		if (startingQuote) {
-			positions.push([subString.search(regEx) + positionIncrement + operatorLength]);
+			positions.push([subString.search(openingRegEx) + positionIncrement + operatorLength]);
 			startingQuote = false;
 		} else {
 			positions[positions.length - 1].push(subString.search(closingRegEx) + positionIncrement + operatorLength);
@@ -44,154 +36,155 @@ function findPairs(regEx, text, operatorLength = 1, closingRegEx = regEx) {
 	return positions;
 }
 
-function checkLineFormat(text, previousLineNonClosedStrings = false) {
+function checkLineFormat(text, previousLineNonClosedBrackets = false) {
 
-	const filters = [
+	const missingSpaceExpressions = [
 		// parentheses
-		/(\([^ )])|([^ (]\))/,
+		/(\([^ \t)])|([^ \t(]\))/,
 
 		// curly brackets
-		/(\{[^ }])|([^ {]\})/,
+		/(\{[^ \t}])|([^ \t{]\})/,
 
 		// minus
-		/([^ ]-)|(-[^ ])/,
+		/([^ \t]-)|(-[^ \t])/,
 
 		// plus
-		/([^ ]\+)|(\+[^ ])/,
+		/([^ \t]\+)|(\+[^ \t])/,
 
 		// multiplication,
-		/([^ ]\*)|(\*[^ ])/,
+		/([^ \t]\*)|(\*[^ \t])/,
 
 		// division
-		/([^ ]\/)|(\/[^ ])/,
+		/([^ \t]\/)|(\/[^ \t])/,
 
 		// modulo
-		/([^ ]%)|(%[^ ])/,
+		/([^ \t]%)|(%[^ \t])/,
 
 		// exponent
-		/([^ ]\^)|(\^[^ ])/,
+		/([^ \t]\^)|(\^[^ \t])/,
 
 		// greaterThan
-		/([^ ]>)|(>[^ \=])/,
+		/([^ \t]>)|(>[^ \=\t])/,
 
 		// lessThan
-		/([^ ]<)|(<[^ \=])/,
+		/([^ \t]<)|(<[^ \=\t])/,
 
 		// comma
-		/,[^ ]/,
+		/,[^ \t]/,
 
 		// equals
-		/([^ \=><~]=)|(=[^ \=])/,
+		/([^ \=><~\t]=)|(=[^ \=\t])/,
 
 		// unequal
-		/[^ ]~/,
+		/[^ \t]~/,
 	];
 
-	const edits = filters.map((filter => parenthesesPositions(filter, text)));
-
+	const missingSpacePositions = missingSpaceExpressions.map(
+		(regEx => getMissingSpacePositions(regEx, text)));
 
 
 	// double square brackets positions
-	const sqPositions = findPairs(/\[\[/, text, 2, /\]\]/);
+	const sqPositions = findPairs(/(--)*\[\[/, text, 2, /\]\](--)*/);
 	const stringTagsPositions = sqPositions.
 		concat(findPairs(/'/, text)).
 		concat(findPairs(/"/, text));
 
-	const closingPosition = text.search(/]]/);
-	const startsNonClosedString = sqPositions.length != 0 && closingPosition == -1
+	const sqBracketsClosingPosition = text.search(/\]\]/);
+	const startsNonClosedBrackets = sqPositions.length != 0 && sqBracketsClosingPosition == -1
 
 
 
 	/******************** BEGIN: filter functions ******************/
 
-	function isCommented(edit) {
+	function isCommented(pos) {
 
 		const searchResult = text.search(/--/);
+
 		const commentPosition = searchResult != -1
 			? searchResult
 			: Infinity;
 
-		return edit >= commentPosition;
+		return pos >= commentPosition;
 	}
 
-	const isInNonClosedString = (edit) =>
-		previousLineNonClosedStrings && edit <= closingPosition;
+	const isInNonClosedSqBrackets = (pos) =>
+		previousLineNonClosedBrackets && pos <= sqBracketsClosingPosition;
 
-	function isInInlineString(edit) {
-		const predicate = (pPosition) => edit >= pPosition[0] && edit < pPosition[1];
+	function isInInlineString(pos) {
+		// pPositions = pair positions
+		const predicate = (pPositions) => pos >= pPositions[0] && pos < pPositions[1];
 
 		return stringTagsPositions.find(predicate) != null;
 	}
 
-	function isInStartedString(edit) {
+	function isInStartedString(pos) {
 		const lastSqPairPosition = sqPositions[sqPositions.length - 1];
 
-		return startsNonClosedString && edit >= lastSqPairPosition[0];
+		return startsNonClosedBrackets && pos >= lastSqPairPosition[0];
 	}
 
 	/******************** END: filter functions ******************/
 
-	// checks if entire line is commented (or in string)
-	if (previousLineNonClosedStrings) {
-		if (closingPosition == -1) {
-			return {
-				missingSpaces: [],
-				nonClosedStrings: true
-			};
-		}
-	}
+
+	// ignore line if entire line is commented (or in string)
+	const ignoreLine = (previousLineNonClosedBrackets && sqBracketsClosingPosition == -1);
 
 	return {
-		missingSpaces: edits.flat()
-			.filter(edit =>
-				!isCommented(edit)
-				&& !isInNonClosedString(edit)
-				&& !isInInlineString(edit)
-				&& !isInStartedString(edit)
+		missingSpaces: missingSpacePositions.flat()
+			.filter(pos =>
+				!ignoreLine
+				&& !isCommented(pos)
+				&& !isInNonClosedSqBrackets(pos)
+				&& !isInInlineString(pos)
+				&& !isInStartedString(pos)
 			)
 			.sort(function (a, b) { return a - b }),
-		nonClosedStrings: startsNonClosedString
+		nonClosedSqBracket: ignoreLine || startsNonClosedBrackets
 	}
 }
 
-function setEdit(lineCount, getLine, documentUri) {
-	const edit = new vscode.WorkspaceEdit();
+function checkAllLinesFormat(lineCount, getLine, documentUri) {
+	const edits = [];
 
-	// nonClosedStrings is a flag that indicates whether the current line 
-	// contains non-closed string
-	let nonClosedStrings = false;
+	// nonClosedSqBrackets is a flag that indicates whether the current line 
+	// contains non-closed square double brackets (used for multi-line strings or comments)
+	let nonClosedSqBrackets = false;
 
 	for (let lineIndex = 0; lineIndex < lineCount; lineIndex++) {
 		const line = getLine(lineIndex);
 
 		// lineFormat contains information about whether the line contains non-closed string
 		// and positions of missing spaces
-		const lineFormat = checkLineFormat(line.text, nonClosedStrings);
-		nonClosedStrings = lineFormat.nonClosedStrings;
+		const lineFormat = checkLineFormat(line.text, nonClosedSqBrackets);
+		nonClosedSqBrackets = lineFormat.nonClosedSqBracket;
 
-		for (let i = lineFormat.missingSpaces.length; i > 0; i--) {
-			edit.insert(documentUri, { line: lineIndex, character: lineFormat.missingSpaces[i - 1] }, " ");
+		for (let charPos = lineFormat.missingSpaces.length - 1; charPos >= 0; charPos--) {
+			edits.push(vscode.TextEdit.insert(new vscode.Position(lineIndex, lineFormat.missingSpaces[charPos]), ' '));
 		}
 	}
 
-	return edit;
+	return edits;
 }
+
 /**
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
+	const selectors = [
+		{ language: 'lua', scheme: 'file' },
+		{ language: 'lua', scheme: 'untitled' },
+	];
 
-	let disposable = vscode.commands.registerCommand('solar2d-formatter.format2', () => {
-		const { activeTextEditor } = vscode.window;
-
-		if (activeTextEditor && activeTextEditor.document.languageId === 'lua') {
-			const { document } = activeTextEditor;
-			const edit = setEdit(document.lineCount, document.lineAt, document.uri);
-			return vscode.workspace.applyEdit(edit);
+	vscode.languages.registerDocumentFormattingEditProvider(
+		selectors,
+		{
+			provideDocumentFormattingEdits: (document, options, token) => {
+				return new Promise((resolve, reject) => {
+					resolve(checkAllLinesFormat(document.lineCount, document.lineAt, document.uri));
+				})
+			}
 		}
-	});
-
-	context.subscriptions.push(disposable);
+	);
 }
 
 // This method is called when your extension is deactivated
@@ -201,5 +194,5 @@ module.exports = {
 	activate,
 	deactivate,
 	checkLineFormat,
-	setEdit
+	checkAllLinesFormat
 }

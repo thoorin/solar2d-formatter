@@ -7,15 +7,13 @@
     "vscode": "^1.93.0"
   },
   "categories": [
-    "Other"
+    "Formatters"
   ],
-  "activationEvents": [],
+	"activationEvents": [
+		"onLanguage:lua"
+	],
   "main": "./extension.js",
   "contributes": {
-    "commands": [{
-      "command": "solar2d-formatter.format2",
-      "title": "Format 2"
-    }]
   },
   "scripts": {
     "lint": "eslint .",
