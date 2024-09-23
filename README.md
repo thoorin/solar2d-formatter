@@ -4,7 +4,9 @@ Solar2D-Formatter is Visual Studio Code extension designed to be used for develo
 
 ## Features
 
-Adds missing spaces - for example `local someFunc=function(a,b,c) return a+b*c end`<br /> is formatted into ```local someFunc = function( a, b, c ) return a + b * c end```
+Adds missing spaces - for example:<br />
+`local someFunc=function(a,b,c) return a+b*c end`<br /> 
+is formatted into: ```local someFunc = function( a, b, c ) return a + b * c end```
 
 ## Release Notes
 
