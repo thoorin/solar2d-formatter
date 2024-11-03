@@ -1,8 +1,10 @@
 {
   "name": "solar2d-formatter",
   "displayName": "solar2d-formatter",
-  "description": "",
-  "version": "0.0.1",
+  "description": "Lua formatter inspired by Solar2D documentation.",
+  "version": "1.0.1",
+  "publisher": "marek-skreko",
+  "icon": "icon.png",
   "engines": {
     "vscode": "^1.93.0"
   },
@@ -19,6 +21,10 @@
     "lint": "eslint .",
     "pretest": "npm run lint",
     "test": "vscode-test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thoorin/solar2d-formatter"
   },
   "devDependencies": {
     "@types/vscode": "^1.93.0",

@@ -586,7 +586,25 @@ suite('Single line format test suite', () => {
         const text = '	}';
 
         const expected = [];
-        const actual = formatter.checkLineFormat(text, true).missingSpaces;
+        const actual = formatter.checkLineFormat(text).missingSpaces;
+
+        assert.deepEqual(actual, expected);
+    });
+
+    test('(-', () => {
+        const text = 'local rightShield = createShield(- 1 )';
+
+        const expected = [33];
+        const actual = formatter.checkLineFormat(text).missingSpaces;
+
+        assert.deepEqual(actual, expected);
+    });
+
+    test('{-', () => {
+        const text = 'local rightShield = createShield{- 1 }';
+
+        const expected = [33];
+        const actual = formatter.checkLineFormat(text).missingSpaces;
 
         assert.deepEqual(actual, expected);
     });

@@ -71,13 +71,16 @@ suite('Multiple lines format test suite', () => {
 			'local multiLineString= [[ a^2',
 			'',
 			'b^2',
-			'c^2),,]] a <3'
+			'c^2),,]] a <3',
+			'local leftShield = createShield(- 1)'
 		];
 
 		const expected = [
 			vscode.TextEdit.insert(new vscode.Position(1, 13), ' '),
 			vscode.TextEdit.insert(new vscode.Position(2, 21), ' '),
 			vscode.TextEdit.insert(new vscode.Position(5, 12), ' '),
+			vscode.TextEdit.insert(new vscode.Position(6, 35), ' '),
+			vscode.TextEdit.insert(new vscode.Position(6, 32), ' '),
 		]
 
 		const actual = formatter.checkAllLinesFormat(text.length,

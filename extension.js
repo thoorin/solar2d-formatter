@@ -46,7 +46,7 @@ function checkLineFormat(text, previousLineNonClosedBrackets = false) {
 		/(\{[^ \t}])|([^ \t{]\})/,
 
 		// minus
-		/([^ \t]-)|(-[^ \t])/,
+		/([^ \t\(\{]-)|(-[^ \t])/,
 
 		// plus
 		/([^ \t]\+)|(\+[^ \t])/,

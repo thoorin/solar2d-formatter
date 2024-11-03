@@ -10,11 +10,9 @@ Adds missing spaces - for example:<br />
 
 ## Release Notes
 
-
-
 ### 1.0.0
 
-Initial release DATE
+Initial release: November 2024
 
 ## Project structure
 
