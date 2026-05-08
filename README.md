@@ -25,6 +25,10 @@ SingleLine tests still help with quicker identification of regression bugs, howe
 implementation tests, feel free to rewrite them or even delete them if the implementation changes significantly.
 
 ## Useful commands
+Ensure to have npm installed:
+`brew install node`
+Then install this:
+`npm install --save-dev @vscode/test-cli @vscode/test-electron`
 
 Run the tests with:
 `npm run test`
