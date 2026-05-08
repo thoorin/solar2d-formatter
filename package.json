@@ -2,7 +2,7 @@
   "name": "solar2d-formatter",
   "displayName": "Solar2D Formatter",
   "description": "Lua formatter inspired by Solar2D documentation.",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "publisher": "marek-skreko",
   "icon": "icon.png",
   "engines": {
