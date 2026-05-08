@@ -608,4 +608,22 @@ suite('Single line format test suite', () => {
 
         assert.deepEqual(actual, expected);
     });
+
+    test('-e', () => {
+        const text = 'if ( math.abs( a1 - a2 ) > 1e-9 ) then';
+
+        const expected = [];
+        const actual = formatter.checkLineFormat(text).missingSpaces;
+
+        assert.deepEqual(actual, expected);
+    });
+
+    test('-E', () => {
+        const text = 'if ( math.abs( a1 - a2 ) > 1E-9 ) then';
+
+        const expected = [];
+        const actual = formatter.checkLineFormat(text).missingSpaces;
+
+        assert.deepEqual(actual, expected);
+    });
 });

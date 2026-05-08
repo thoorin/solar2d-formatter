@@ -46,7 +46,7 @@ function checkLineFormat(text, previousLineNonClosedBrackets = false) {
 		/(\{[^ \t}])|([^ \t{]\})/,
 
 		// minus
-		/([^ \t\(\{]-)|(-[^ \t])/,
+		/([^ \t\(\{eE]-)|(-[^ \t])/,
 
 		// plus
 		/([^ \t]\+)|(\+[^ \t])/,
@@ -96,6 +96,14 @@ function checkLineFormat(text, previousLineNonClosedBrackets = false) {
 
 	/******************** BEGIN: filter functions ******************/
 
+	function isExponent(pos) {
+		const exponentRegEx = /[eE]-\d/;
+		const searchResult = text.search(exponentRegEx);
+
+		return searchResult != -1
+			&& pos == searchResult + 2;
+	}
+
 	function isCommented(pos) {
 
 		const searchResult = text.search(/--/);
@@ -137,6 +145,7 @@ function checkLineFormat(text, previousLineNonClosedBrackets = false) {
 				&& !isInNonClosedSqBrackets(pos)
 				&& !isInInlineString(pos)
 				&& !isInStartedString(pos)
+				&& !isExponent(pos)
 			)
 			.sort(function (a, b) { return a - b }),
 		nonClosedSqBracket: ignoreLine || startsNonClosedBrackets
