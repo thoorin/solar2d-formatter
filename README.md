@@ -10,7 +10,8 @@ Adds missing spaces - for example:<br />
 
 ## Release Notes
 
-### 1.0.0
+### 1.0.0 initial release
+### 1.1.0 support for scientific notation of numbers
 
 Initial release: November 2024
 
